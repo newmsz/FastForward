@@ -1,0 +1,27 @@
+{
+  "name": "FastForward",
+  "version": "0.0.1",
+  "description": "Lightweight Reverse Proxy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/newmsz/FastForward.git"
+  },
+  "keywords": [
+    "Reverse",
+    "Proxy"
+  ],
+  "author": "newmsz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/newmsz/FastForward/issues"
+  },
+  "dependencies": {
+  	"bouncy": "3.2.x",
+  	"underscore": "1.6.x"
+  },
+  "homepage": "https://github.com/newmsz/FastForward"
+}
