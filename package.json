@@ -1,8 +1,12 @@
 {
   "name": "fastforward",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Lightweight Reverse Proxy",
-  "main": "index.js",
+  "main": "./bin/fastforward.js",
+  "bin": {
+    "fastforward": "./bin/fastforward.js"
+  },
+  "preferGlobal": "true",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
