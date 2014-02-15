@@ -1,5 +1,5 @@
 {
-  "name": "FastForward",
+  "name": "fastforward",
   "version": "0.0.1",
   "description": "Lightweight Reverse Proxy",
   "main": "index.js",
