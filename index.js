@@ -1,7 +1,7 @@
 var bouncy = require('bouncy'),
 	fs = require('fs'),
 	cluster = require('cluster'),
-	debug = exports.debug = true,
+	debug = exports.debug = false,
 	v = JSON.parse(fs.readFileSync('package.json').toString('utf8')).version,
 	server_string = exports.server_string = 'FastForward/' + v,
 	Upstream = require('./lib/Upstream'),
