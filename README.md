@@ -34,6 +34,12 @@ Example Configuration
 			"Path": "access.log",
 			"Format": "$remote_addr [$time_local] \"$request\" $status $bytes_sent \"$http_referer\" \"$http_user_agent\" \"$gzip_ratio\""
 		},
+		"Gzip": {
+			"Vary": true,
+			"CompressionLevel": 6,
+			"MinLength": 1024, /* Response body length less than MinLength will not be compressed */
+			"Types": ["text/plain", "text/html", "text/css", "application/json", "application/javascript"]
+		},
 		"Name": "myownurl.com",
 		"SSL": {
 			"Cert": "./certificate/certificate.crt",
