@@ -85,8 +85,7 @@ exports.init = function (cjson) {
 			var default_log_format = '$remote_addr [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" "$gzip_ratio"';
 			if(server_conf['AccessLog']) {
 				server.setLogger(new Logger(server_conf['AccessLog'].Path, server_conf['AccessLog'].Format || default_log_format));
-			} else 
-				server.setLogger(new Logger('access.log', default_log_format));
+			}
 			
 			servers.push(server);
 		}
