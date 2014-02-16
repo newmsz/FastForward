@@ -3,6 +3,18 @@ FastForward
 
 Lightweight Reverse Proxy
 
+Install
+-------
+```
+npm install -g fastforward
+```
+
+Usage
+-----
+```
+fastforward [conf.cjson]
+```
+
 Example Configuration
 ---------------------
 ```
@@ -18,9 +30,9 @@ Example Configuration
 	
 	"Servers": [{
 		"Port": 443,
-		"Access Log": {
-			"Path": "/var/log/revx/access.log",
-			"Format": ""
+		"AccessLog": {
+			"Path": "access.log",
+			"Format": "$remote_addr [$time_local] \"$request\" $status $bytes_sent \"$http_referer\" \"$http_user_agent\" \"$gzip_ratio\""
 		},
 		"Name": "myownurl.com",
 		"SSL": {

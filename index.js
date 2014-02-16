@@ -1,11 +1,13 @@
 var bouncy = require('bouncy'),
 	fs = require('fs'),
 	cluster = require('cluster'),
+	debug = exports.debug = true,
 	v = JSON.parse(fs.readFileSync('package.json').toString('utf8')).version,
 	server_string = exports.server_string = 'FastForward/' + v,
 	Upstream = require('./lib/Upstream'),
 	Server = require('./lib/Server'),
-	Location = require('./lib/Location');
+	Location = require('./lib/Location'),
+	Logger = require('./lib/Logger');
 
 exports.init = function (cjson) {
 	var upstreams = [ ],
@@ -80,6 +82,12 @@ exports.init = function (cjson) {
 				server.rewrite(server_conf.Rewrite.From, server_conf.Rewrite.To, server_conf.Rewrite.Range);
 			}
 			
+			var default_log_format = '$remote_addr [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" "$gzip_ratio"';
+			if(server_conf['AccessLog']) {
+				server.setLogger(new Logger(server_conf['AccessLog'].Path, server_conf['AccessLog'].Format || default_log_format));
+			} else 
+				server.setLogger(new Logger('access.log', default_log_format));
+			
 			servers.push(server);
 		}
 	} else throw new Error('No server is specified');
@@ -111,7 +119,7 @@ exports.init = function (cjson) {
 	}
 
 	//------------------------------------ FORK & LISTEN ------------------------------------
-	if (cluster.isMaster) {
+	if (cluster.isMaster && !debug) {
 		for (var i = 0; i < workers; i++)
 			cluster.fork();
 		
@@ -128,6 +136,11 @@ exports.init = function (cjson) {
 		}
 	}
 
+	if(debug) {
+		for(var i=0; i<servers.length; i++)
+			console.log(servers[i].toString());
+	}
+	
 	process.on('uncaughtException', function (err) {
 		console.error(err);
 	});
