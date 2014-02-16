@@ -1,6 +1,6 @@
 {
   "name": "fastforward",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Lightweight Reverse Proxy",
   "main": "./bin/fastforward.js",
   "bin": {
