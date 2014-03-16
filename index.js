@@ -91,6 +91,10 @@ exports.init = function (cjson) {
 				server.enableZlib(server_conf['Gzip'].Types, server_conf['Gzip'].Vary, server_conf['Gzip'].CompressionLevel, server_conf['Gzip'].MinLength);				
 			}
 			
+			if(server_conf['Timeout']) {
+				server.setTimeout(server_conf['Timeout']);
+			}
+			
 			servers.push(server);
 		}
 	} else throw new Error('No server is specified');
@@ -127,7 +131,8 @@ exports.init = function (cjson) {
 			cluster.fork();
 		
 		cluster.on('exit', function(worker, code, signal) {
-			console.log('worker ' + worker.process.pid + ' died');
+			console.error('worker %d died (%s). restarting...', worker.process.pid, signal || code);
+			cluster.fork();
 		});
 	} else {
 		for(var i=0; i<servers.length; i++) {

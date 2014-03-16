@@ -51,6 +51,7 @@ Example Configuration
 		"SetProxyHeader": {
 			"X-Forwarded-For": "$x_forwarded_for"
 		},
+		"Timeout": 1000,
 		"Locations": {
 			"^/": {
 				"Forward": "http://UpstreamServer"
