@@ -126,7 +126,7 @@ exports.init = function (cjson) {
 	}
 
 	//------------------------------------ FORK & LISTEN ------------------------------------
-	if (cluster.isMaster && !debug) {
+	if (workers > 1 && cluster.isMaster && !debug) {
 		for (var i = 0; i < workers; i++)
 			cluster.fork();
 		
