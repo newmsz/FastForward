@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
-var fs = require('fs');
+var fs = require('fs'),
+	child_process = require('child_process');
 
 if(process.argv.length == 3) {
 	if(process.argv[2].toLowerCase() == 'install') {
@@ -89,7 +90,7 @@ if(process.argv.length == 3) {
 			'        echo $"Usage: service fastforward {start|stop|status|restart}"',
 			'        exit 2',
 			'esac'
-		].join('\r\n');
+		].join('\n');
 
 		var cjson = [
 		    '{',
@@ -114,7 +115,7 @@ if(process.argv.length == 3) {
 			'		}',
 			'	}]',
 			'}'
-		].join('\r\n');
+		].join('\n');
 
 		try {
 			fs.mkdirSync(conf_dir);
@@ -128,10 +129,16 @@ if(process.argv.length == 3) {
 			if(err.code != 'EEXIST') throw err;
 		}
 		
-		fs.writeFileSync(conf, new Buffer(cjson));
-		fs.writeFileSync('/etc/init.d/fastforward', new Buffer(initd));
+		if(!fs.existsSync(conf)) fs.writeFileSync(conf, new Buffer(cjson));
+		if(!fs.existsSync('/etc/init.d/fastforward')) {
+			fs.writeFileSync('/etc/init.d/fastforward', new Buffer(initd));
+			fs.chmodSync('/etc/init.d/fastforward', 0x755);
+		}
 		
-		return console.log('Fastforward is successfully installed\r\nThe configuration file is under `' + conf + '`\r\nUse `service fastforward start` to start fastforward');
+		child_process.exec('chkconfig --add fastforward', function () {
+			console.log('Fastforward is successfully installed\r\nThe configuration file is under `' + conf + '`\r\nUse `service fastforward start` to start fastforward');	
+		});
+		return;
 	}
 } else if(process.argv.length == 4) {
 	if(process.argv[2] == '-c') {
