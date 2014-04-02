@@ -162,3 +162,7 @@ exports.init = function (cjson) {
 		response.end();
 	}
 };
+
+exports._enableDebugging = function () {
+	Location._enableDebugging();
+};

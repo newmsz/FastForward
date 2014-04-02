@@ -1,6 +1,6 @@
 {
   "name": "fastforward",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Lightweight Reverse Proxy",
   "main": "./bin/fastforward.js",
   "bin": {
@@ -25,7 +25,9 @@
   },
   "dependencies": {
   	"bouncy": "3.2.x",
-  	"underscore": "1.6.x"
+  	"colors": "0.6.x",
+  	"underscore": "1.6.x",
+  	"longjohn": "0.2.x"
   },
   "homepage": "https://github.com/newmsz/FastForward"
 }
