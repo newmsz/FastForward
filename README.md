@@ -7,12 +7,13 @@ Install
 -------
 ```
 npm install -g fastforward
+fastforward install
 ```
 
 Usage
 -----
 ```
-fastforward [conf.cjson]
+service fastforward start
 ```
 
 Example Configuration
