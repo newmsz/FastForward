@@ -15,17 +15,22 @@ var hostname = 'localhost',
 		echo: 5910,
 		dnr: 5920,
 		aborting: 5930,
-		aaaborting: 5940
+		aaaborting: 5940,
+		cconn: 5950
 	},
 	ff_timeout = 3000;
 
 var _echoServer = TestServer.createServer(ports.echo).echoMode(),
 	_dnrServer = TestServer.createServer(ports.dnr).notRespondingMode(),
 	_abortingServer = TestServer.createServer(ports.aborting).abortingMode(),
-	_answer_abortingServer = TestServer.createServer(ports.aaaborting).answerAndAbortingMode();
+	_answer_abortingServer = TestServer.createServer(ports.aaaborting).answerAndAbortingMode(),
+	_closeConnectionServer = TestServer.createServer(ports.cconn).closeConnectionMode();
+
+var _ff_verbose = false,
+	_skipLongTimeTest = false;
 
 var fastforward = require('../index');
-fastforward._enableDebugging();
+if(_ff_verbose) fastforward._enableDebugging();
 fastforward.init({
 	"Settings": {
     	"Workers": 1
@@ -34,7 +39,8 @@ fastforward.init({
 		"EchoServer": ['localhost:' + ports.echo + ';q=1.0'],
 		"DoNotRespondServer": ['localhost:' + ports.dnr + ';q=1.0'],
 		"AbortingServer": ['localhost:' + ports.aborting + ';q=1.0'],
-		"AnswerAndAbortingServer": ['localhost:' + ports.aaaborting + ';q=1.0']
+		"AnswerAndAbortingServer": ['localhost:' + ports.aaaborting + ';q=1.0'],
+		"ConnectionCloseServer": ['localhost:' + ports.cconn + ';q=1.0']
     },
     "Servers": [{
     	"Port": ports.ff,
@@ -61,6 +67,9 @@ fastforward.init({
             },
             "^/aaaborting": {
             	"Forward": "http://AnswerAndAbortingServer"
+            },
+            "^/cclose": {
+            	"Forward": "http://ConnectionCloseServer"
             }
         }
     }]
@@ -308,7 +317,7 @@ TestSuite.newSuite('NormalRequest', {
 			req.end();	
 		});
 		
-		it('"PUT /echo must not be timed out because it sends the data periodically within timeout limit', function () {
+		if(!_skipLongTimeTest) it('"PUT /echo must not be timed out because it sends the data periodically within timeout limit', function () {
 			/* REQ 6 */
 			var self = this,
 				timedout = false,
@@ -385,7 +394,8 @@ TestSuite.newSuite('Request to "Not responding" server', {
 		_dnrServer.start();
 	},
 	run: function (it) {
-		it('"GET /do_not_respond" must be client timed out after ' + parseInt((ff_timeout - 1000) / 1000) + ' seconds', function () {
+		if(_skipLongTimeTest) { it('is skipped', function () { this.done(); })}
+		if(!_skipLongTimeTest) it('"GET /do_not_respond" must be client timed out after ' + parseInt((ff_timeout - 1000) / 1000) + ' seconds', function () {
 			/* REQ 7 */
 			var self = this,
 				timedout = false;
@@ -413,7 +423,7 @@ TestSuite.newSuite('Request to "Not responding" server', {
 			req.end();	
 		});
 				
-		it('"GET /do_not_respond" must be server timed out after ' + parseInt((ff_timeout) / 1000) + ' seconds', function () {
+		if(!_skipLongTimeTest) it('"GET /do_not_respond" must be server timed out after ' + parseInt((ff_timeout) / 1000) + ' seconds', function () {
 			/* REQ 8 */
 			var self = this,
 				timedout = false;
@@ -452,7 +462,8 @@ TestSuite.newSuite('Unfinished request to "Not responding" server', {
 		_dnrServer.start();
 	},
 	run: function (it) {
-		it('"POST /do_not_respond" must be server timed out after ' + parseInt((ff_timeout) / 1000) + ' seconds', function () {
+		if(_skipLongTimeTest) { it('is skipped', function () { this.done(); })}
+		if(!_skipLongTimeTest) it('"POST /do_not_respond" must be server timed out after ' + parseInt((ff_timeout) / 1000) + ' seconds', function () {
 			/* REQ 9 */
 			var self = this,
 				timedout = false;
@@ -480,8 +491,8 @@ TestSuite.newSuite('Unfinished request to "Not responding" server', {
 			
 			req.write(new Buffer('Message to flush the request'));
 		});
-		
-		it('that will be aborted while sending must be handled', function () {
+
+		if(!_skipLongTimeTest) it('that will be aborted while sending must be handled', function () {
 			/* REQ 10 */
 			var self = this,
 				timedout = false;
@@ -573,7 +584,8 @@ TestSuite.newSuite('Request to "AnswerAndAborting" server', {
 		it('it must be handled properly', function () {
 			/* REQ 12 */
 			var self = this,
-				timedout = false;
+				timedout = false,
+				responded = false;
 			
 			var req = http.request({
 				hostname:  hostname,
@@ -584,18 +596,20 @@ TestSuite.newSuite('Request to "AnswerAndAborting" server', {
 				self.expect(200, res.statusCode);
 				self.expect('keep-alive', res.headers['connection']);
 				
-				res.on('error', function (err) {
-					console.error(err);
-					self.fail(err);
-				});
+				responded = true;
 				
-				res.on('close', function () {
-					console.log('sudden closed');
-				});
+				setTimeout(function () {
+					if(responded) self.fail('response completed');
+				}, ff_timeout / 2);
+			});
+			
+			req.on('close', function () {
+				responded = false;
+				self.expect(true, true);
+				self.done();
 			});
 			
 			req.on('error', function (err) {
-				console.error(err);
 				self.fail(err);
 			});
 			
@@ -616,4 +630,38 @@ TestSuite.newSuite('Request to "AnswerAndAborting" server', {
 		_answer_abortingServer.close();
 	}
 });
+
+TestSuite.newSuite('Request to "ConnectionClose" server', {
+	setup: function () {
+		_closeConnectionServer.start();
+	},
+	run: function (it) {
+		it('it must be handled properly', function () {
+			var self = this,
+				timedout = false;
+			
+			var req = http.request({
+				hostname:  hostname,
+				port: ports.ff,
+				method: 'GET',
+				path: '/cclose'
+			}, function (res) {
+				self.expect(200, res.statusCode);
+				self.expect('keep-alive', res.headers['connection']);
+				self.done();
+			});
+			
+			req.on('error', function (err) {
+				console.error(err);
+				self.fail(err);
+			});
+			
+			req.end();
+		});
+	}, 
+	teardown: function () {
+		_closeConnectionServer.close();
+	}
+});
+
 TestSuite.run();

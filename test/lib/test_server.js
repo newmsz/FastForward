@@ -99,6 +99,17 @@ TestServer.prototype.answerAndAbortingMode = function () {
 	return this;
 };
 
+TestServer.prototype.closeConnectionMode = function () {
+	this._onRequest = function (req, res) {
+		res.writeHead(200, { 
+			'connection': 'close'
+		});
+		res.write(new Buffer('connection closed successfully'));
+		res.end();
+	};
+	return this;
+};
+
 exports.createServer = function (port) {
 	return new TestServer(port);
 };

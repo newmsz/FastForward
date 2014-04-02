@@ -36,7 +36,10 @@ TestSuite.prototype._it = function (text, func) {
 	var tc = new TestCase(this._suite_no + ') ' + this._description + ' ' + text, func);
 	tc._done = _.bind(this._testcase_done, this);
 	this._testcases.push(tc);
-	tc._run();
+	
+	setTimeout(function () {
+		tc._run();	
+	}, 1);
 };
 
 TestSuite.prototype._testcase_done = function () {
