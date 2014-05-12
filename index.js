@@ -2,19 +2,19 @@ var bouncy = require('bouncy'),
 	fs = require('fs'),
 	cluster = require('cluster'),
 	debug = exports.debug = false,
-	v = '0.2.7',
+	v = '0.2.8',
 	server_string = exports.server_string = 'FastForward/' + v,
 	Upstream = require('./lib/Upstream'),
 	Server = require('./lib/Server'),
 	Location = require('./lib/Location'),
 	Logger = require('./lib/Logger');
 
-exports.init = function (cjson) {
-	var upstreams = [ ],
-		portmap = { },
-		servers = [ ],
-		workers = require('os').cpus().length;  
+var upstreams = [ ],
+	portmap = { },
+	servers = [ ],
+	workers = require('os').cpus().length;
 
+exports.setConfiguration = function (cjson) {
 	// ------------------------------------ PARSE CONF ------------------------------------
 	if(cjson.Settings) {
 		if(cjson.Settings.Workers && (typeof cjson.Settings.Workers === 'number')) workers = cjson.Settings.Workers;
@@ -37,19 +37,25 @@ exports.init = function (cjson) {
 			if(!portmap[port]) portmap[port] = [];
 			
 			if(server_conf.SSL) {
-				var sslconf = { 
-					cert: fs.readFileSync(server_conf.SSL.Cert),
-					key: fs.readFileSync(server_conf.SSL.Key),
-					ca: []
-				};
+				try {
+					var sslconf = { 
+						cert: fs.readFileSync(server_conf.SSL.Cert),
+						key: fs.readFileSync(server_conf.SSL.Key),
+						ca: []
+					};
+					
+					if(server_conf.SSL.CA) {
+						for(var j=0; j<server_conf.SSL.CA.length; j++)
+							sslconf.ca.push(fs.readFileSync(server_conf.SSL.CA[j]));
+					}
 				
-				if(server_conf.SSL.CA) {
-					for(var j=0; j<server_conf.SSL.CA.length; j++)
-						sslconf.ca.push(fs.readFileSync(server_conf.SSL.CA[j]));
+					server.setSSL(sslconf);
+				} catch (err) {
+					if(err && err.code == 'ENOENT') {
+						throw err.toString();
+					}
+					throw err;
 				}
-			
-				server.setSSL(sslconf);
-				
 				for(var j=0; j<portmap[port].length; j++)
 					if(portmap[port][j].isSSL()) throw new Error('Cannot bind more than two SSL server at the same port');
 			}
@@ -124,7 +130,13 @@ exports.init = function (cjson) {
 			portmap[port] = { listen: function () { } };
 		}
 	}
+	
+	process.on('uncaughtException', function (err) {
+		console.error(err.stack);
+	});
+};
 
+exports.start = function () {
 	//------------------------------------ FORK & LISTEN ------------------------------------
 	if (workers > 1 && cluster.isMaster && !debug) {
 		for (var i = 0; i < workers; i++)
@@ -161,6 +173,11 @@ exports.init = function (cjson) {
 		});
 		response.end();
 	}
+};
+
+exports.enableDebugging = function () {
+	debug = exports.debug = true;
+	require('./lib/StreamSocketManager').verbose();
 };
 
 exports._enableDebugging = function () {

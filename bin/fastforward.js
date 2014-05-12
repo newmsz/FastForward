@@ -58,6 +58,11 @@ if(process.argv.length == 3) {
 				'      log_daemon_msg "Starting fastforward: "',
 				'    fi',
 				'',
+				'    if ! start-stop-daemon --start --quiet --oknodo --exec $exec -- -t $conf; then',
+			    '      log_end_msg 1',
+			    '      exit 1',
+			    '    fi',
+			    '',
 				'    if start-stop-daemon --start --quiet --oknodo --make-pidfile --background --pidfile $pidfile --exec $exec -- -c $conf; then',
 				'      log_end_msg 0',
 				'    else',
@@ -259,13 +264,52 @@ if(process.argv.length == 3) {
 		});
 		return;
 	}
-} else if(process.argv.length == 4) {
-	if(process.argv[2] == '-c') {
+} else if(process.argv.length >= 4) {
+	if(process.argv.indexOf('--debug') > 0) {
+		require('../index').enableDebugging();
+	}
+	
+	if(process.argv.indexOf('-t') > 0 && process.argv.indexOf('-c') < 0) {
+		var cjson;
+		
+		try {
+			cjson =  fs.readFileSync(process.argv[process.argv.indexOf('-t') + 1]).toString('utf8');
+		} catch (err) {
+			if(err && err.code == 'ENOENT') console.error(err.toString());
+			else console.error(err);
+			process.exit(1);
+		}
+		
+		try {
+			/* Ignore C-style comments included in the configuration file */
+			cjson = JSON.parse(cjson.replace(/\/\* [\s\S]+? \*\//g, ''));
+		} catch (err) {
+			console.error('Error: CONFIGURATION, is the configuration file JSON formatted?', err);
+			console.error(err);
+			process.exit(1);
+		}
+	
+		try {
+			require('../index').setConfiguration(cjson);
+		} catch (err) {
+			console.error(err);
+			process.exit(1);
+		}
+		
+		process.exit(0);
+	} else if (process.argv.indexOf('-t') < 0 && process.argv.indexOf('-c') > 0) {
 		/* Ignore C-style comments included in the configuration file */
-		var cjson = fs.readFileSync(process.argv[3]).toString('utf8');
+		var cjson = fs.readFileSync(process.argv[process.argv.indexOf('-c') + 1]).toString('utf8');
 			cjson = JSON.parse(cjson.replace(/\/\* [\s\S]+? \*\//g, ''));
 	
-		require('../index').init(cjson);
+		try {
+			require('../index').setConfiguration(cjson);
+		} catch (err) {
+			console.error(err);
+			process.exit(1);
+		}
+
+		require('../index').start(cjson);
 		return;
 	}
 } 
