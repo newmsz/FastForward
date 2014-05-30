@@ -2,7 +2,7 @@ var bouncy = require('bouncy'),
 	fs = require('fs'),
 	cluster = require('cluster'),
 	debug = exports.debug = false,
-	v = '0.2.8',
+	v = '0.3.0',
 	server_string = exports.server_string = 'FastForward/' + v,
 	Upstream = require('./lib/Upstream'),
 	Server = require('./lib/Server'),
@@ -90,7 +90,7 @@ exports.setConfiguration = function (cjson) {
 			
 			var default_log_format = '$remote_addr [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" "$gzip_ratio"';
 			if(server_conf['AccessLog']) {
-				server.setLogger(new Logger(server_conf['AccessLog'].Path, server_conf['AccessLog'].Format || default_log_format));
+				server.setLogger(new Logger.Logger(server_conf['AccessLog'].Path, server_conf['AccessLog'].Format || default_log_format, exports.debug));
 			}
 			
 			if(server_conf['Gzip']) {
@@ -177,7 +177,7 @@ exports.start = function () {
 
 exports.enableDebugging = function () {
 	debug = exports.debug = true;
-	require('./lib/StreamSocketManager').verbose();
+	//require('./lib/StreamSocketManager').verbose();
 };
 
 exports._enableDebugging = function () {
