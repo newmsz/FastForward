@@ -2,7 +2,7 @@ var bouncy = require('bouncy'),
 	fs = require('fs'),
 	cluster = require('cluster'),
 	debug = exports.debug = false,
-	v = '0.3.0',
+	v = '0.3.1',
 	server_string = exports.server_string = 'FastForward/' + v,
 	Upstream = require('./lib/Upstream'),
 	Server = require('./lib/Server'),
@@ -137,13 +137,14 @@ exports.setConfiguration = function (cjson) {
 };
 
 exports.start = function () {
+	if(cluster.isMaster) Logger.info('Fastforward started...');
 	//------------------------------------ FORK & LISTEN ------------------------------------
 	if (workers > 1 && cluster.isMaster && !debug) {
 		for (var i = 0; i < workers; i++)
 			cluster.fork();
 		
 		cluster.on('exit', function(worker, code, signal) {
-			console.error('worker %d died (%s). restarting...', worker.process.pid, signal || code);
+			Logger.error('worker %d died (%s). restarting...', worker.process.pid, signal || code);
 			cluster.fork();
 		});
 	} else {
@@ -162,7 +163,7 @@ exports.start = function () {
 	}
 	
 	process.on('uncaughtException', function (err) {
-		console.error(err.stack);
+		Logger.error(err);
 	});
 
 	// GATEWAY RESPONSES
