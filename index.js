@@ -165,16 +165,16 @@ exports.start = function () {
 	process.on('uncaughtException', function (err) {
 		Logger.error(err);
 	});
-
-	// GATEWAY RESPONSES
-	function NotFound(response) {
-		response.writeHead(404, {
-			'server': server_string,
-			'connection': 'close'
-		});
-		response.end();
-	}
 };
+
+//GATEWAY RESPONSES
+function NotFound(response) {
+	response.writeHead(404, {
+		'server': server_string,
+		'connection': 'close'
+	});
+	response.end();
+}
 
 exports.enableDebugging = function () {
 	debug = exports.debug = true;
