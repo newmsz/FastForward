@@ -1,6 +1,7 @@
 var bouncy = require('bouncy'), 
 	fs = require('fs'),
 	cluster = require('cluster'),
+	_ = require('underscore'),
 	debug = exports.debug = false,
 	v = '0.3.5',
 	server_string = exports.server_string = 'FastForward/' + v,
@@ -119,8 +120,12 @@ exports.setConfiguration = function (cjson) {
 			}
 				
 			portmap[port] = bouncy(function (req, res, bounce) {
+				var headers = _.clone(req.headers);
+				headers['x-forwarded-for'] = req.connection.remoteAddress;
 				if(bouncy_map[req.headers.host]) 
-					bounce(bouncy_map[req.headers.host]);
+					bounce(bouncy_map[req.headers.host], {
+						headers: headers
+					});
 				else {
 					return NotFound(res);
 				}
