@@ -3,7 +3,7 @@ var bouncy = require('bouncy'),
 	cluster = require('cluster'),
 	_ = require('underscore'),
 	debug = exports.debug = false,
-	v = '0.3.7',
+	v = '0.3.8',
 	server_string = exports.server_string = 'FastForward/' + v,
 	Upstream = require('./lib/Upstream'),
 	Server = require('./lib/Server'),
@@ -92,6 +92,8 @@ exports.setConfiguration = function (cjson) {
 			var default_log_format = '$remote_addr [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" "$gzip_ratio"';
 			if(server_conf['AccessLog']) {
 				server.setLogger(new Logger.Logger(server_conf['AccessLog'].Path, server_conf['AccessLog'].Format || default_log_format, exports.debug));
+			} else if(exports.debug) {
+				server.setLogger(new Logger.Logger(null, default_log_format, exports.debug));
 			}
 			
 			if(server_conf['Gzip']) {
@@ -121,7 +123,7 @@ exports.setConfiguration = function (cjson) {
 				
 			portmap[port] = bouncy(function (req, res, bounce) {
 				var headers = _.clone(req.headers);
-				headers['x-forwarded-for'] = req.connection.remoteAddress;
+				headers['--remote-address'] = req.connection.remoteAddress;
 				if(bouncy_map[req.headers.host]) 
 					bounce(bouncy_map[req.headers.host], {
 						headers: headers
