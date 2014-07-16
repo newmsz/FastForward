@@ -110,7 +110,7 @@ exports.setConfiguration = function (cjson) {
 
 	//------------------------------------ RESOLVE ------------------------------------
 	var _prtasn = 8000;
-
+	
 	for(var port in portmap) {
 		if(portmap[port].length > 1) {
 			var bouncy_map = { };
@@ -122,7 +122,7 @@ exports.setConfiguration = function (cjson) {
 			}
 				
 			portmap[port] = bouncy(function (req, res, bounce) {
-				var headers = _.clone(req.headers);
+				var headers = _.clone(req.headers);			
 				headers['--remote-address'] = req.connection.remoteAddress;
 				if(bouncy_map[req.headers.host]) 
 					bounce(bouncy_map[req.headers.host], {
@@ -160,6 +160,7 @@ exports.start = function () {
 		}
 		
 		for(var port in portmap) {
+			Logger.info('Listening ' + port + '...');
 			portmap[port].listen(parseInt(port));
 		}
 	}
@@ -186,8 +187,6 @@ function NotFound(response) {
 exports.enableDebugging = function () {
 	debug = exports.debug = true;
 	//require('./lib/StreamSocketManager').verbose();
-};
-
-exports._enableDebugging = function () {
 	Location._enableDebugging();
+	Logger._debugMode = true;
 };
