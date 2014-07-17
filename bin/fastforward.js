@@ -267,6 +267,9 @@ if(process.argv.length == 3) {
 } else if(process.argv.length >= 4) {
 	if(process.argv.indexOf('--debug') > 0) {
 		require('../index').enableDebugging();
+	} 
+	if(process.argv.indexOf('--silly') > 0) {
+		require('../index').enableSillyMode();
 	}
 	
 	if(process.argv.indexOf('-t') > 0 && process.argv.indexOf('-c') < 0) {

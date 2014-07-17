@@ -3,7 +3,7 @@ var bouncy = require('bouncy'),
 	cluster = require('cluster'),
 	_ = require('underscore'),
 	debug = exports.debug = false,
-	v = '0.3.8',
+	v = '0.3.10',
 	server_string = exports.server_string = 'FastForward/' + v,
 	Upstream = require('./lib/Upstream'),
 	Server = require('./lib/Server'),
@@ -186,7 +186,9 @@ function NotFound(response) {
 
 exports.enableDebugging = function () {
 	debug = exports.debug = true;
-	//require('./lib/StreamSocketManager').verbose();
-	Location._enableDebugging();
-	Logger._debugMode = true;
+};
+
+exports.enableSillyMode = function () {
+	Location._printSillyMessage();
+	Logger.Logger.prototype._printLog = false;
 };
